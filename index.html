@@ -199,9 +199,32 @@ function printPDF() {
     alert("Bitte zuerst berechnen.");
     return;
   }
-  window.print();
+
+  const printContent = document.getElementById("printArea").innerHTML;
+
+  const newWindow = window.open('', '', 'width=800,height=600');
+  newWindow.document.write(`
+    <html>
+      <head>
+        <title>Berechnung Lehrzeit – verlängerte Lehre</title>
+        <style>
+          body { font-family: Arial; padding: 20px; }
+          h2 { margin-bottom: 20px; }
+          p { margin-bottom: 8px; }
+        </style>
+      </head>
+      <body>
+        ${printContent}
+      </body>
+    </html>
+  `);
+
+  newWindow.document.close();
+  newWindow.focus();
+  newWindow.print();
 }
 </script>
 
 </body>
+
 </html>
