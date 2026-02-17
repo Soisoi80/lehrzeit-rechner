@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lehrzeit Rechner</title>
+
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 20px;
+  max-width: 600px;
+  margin: auto;
+}
+
+h2 {
+  text-align: center;
+}
+
+label {
+  font-weight: bold;
+}
+
+input {
+  padding: 8px;
+  margin-top: 4px;
+  margin-bottom: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+button {
+  padding: 12px;
+  margin-top: 8px;
+  width: 100%;
+  font-size: 16px;
+}
+
+table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+}
+
+th, td {
+  border-bottom: 1px solid #ccc;
+  padding: 6px;
+  text-align: left;
+}
+
+.result {
+  margin-top: 20px;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.print-section {
+  display: none;
+}
+
+@media print {
+  body * { visibility: hidden; }
+  .print-section, .print-section * { visibility: visible; }
+  .print-section {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 20px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<h2>Berechnung Lehrzeit – verlängerte Lehre</h2>
+
+<label>Lehrbeginn</label>
+<input type="date" id="startDate">
+
+<h3>Vorlehrzeiten</h3>
+
+<table id="periodTable">
+<thead>
+<tr>
+<th>Betrieb</th>
+<th>Von</th>
+<th>Bis</th>
+<th></th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<button onclick="addRow()">+ Zeitraum hinzufügen</button>
+<button onclick="calculate()">Berechnen</button>
+<button onclick="printPDF()">PDF erzeugen</button>
+
+<div class="result" id="result"></div>
+
+<div class="print-section" id="printArea"></div>
+
+<script>
+const tbody = document.querySelector("#periodTable tbody");
+
+function addRow() {
+  const row = tbody.insertRow();
+  row.innerHTML = `
+    <td><input type="text"></td>
+    <td><input type="date"></td>
+    <td><input type="date"></td>
+    <td><button onclick="this.closest('tr').remove()">X</button></td>
+  `;
+}
+
+addRow();
+
+function calculate() {
+  try {
+    const startValue = document.getElementById("startDate").value;
+    if (!startValue) throw "Lehrbeginn fehlt.";
+
+    const startDate = new Date(startValue);
+    let periods = [];
+
+    for (let row of tbody.rows) {
+      let betrieb = row.cells[0].children[0].value;
+      let vonVal = row.cells[1].children[0].value;
+      let bisVal = row.cells[2].children[0].value;
+
+      if (!vonVal) continue;
+
+      let von = new Date(vonVal);
+      let bis = new Date(bisVal);
+
+      if (bis < von) throw "Bis-Datum liegt vor Von-Datum.";
+      if (von >= startDate) throw "Vorlehrzeit liegt nach Lehrbeginn.";
+
+      periods.push({betrieb, von, bis});
+    }
+
+    periods.sort((a,b)=>a.von-b.von);
+
+    for (let i=0; i<periods.length-1; i++) {
+      if (periods[i].bis >= periods[i+1].von)
+        throw "Vorlehrzeiten überschneiden sich.";
+    }
+
+    let totalDays = 0;
+
+    periods.forEach(p=>{
+      totalDays += Math.floor((p.bis - p.von)/(1000*60*60*24)) + 1;
+    });
+
+    let thirdYear = new Date(startDate);
+    thirdYear.setFullYear(thirdYear.getFullYear()+2);
+    thirdYear.setDate(thirdYear.getDate()-totalDays);
+
+    let endDate = new Date(startDate);
+    endDate.setFullYear(endDate.getFullYear()+4);
+    endDate.setDate(endDate.getDate()-totalDays);
+
+    document.getElementById("result").innerHTML =
+      "Eintritt 3. Lehrjahr: " + formatDate(thirdYear) + "<br>" +
+      "Lehrzeitende: " + formatDate(endDate);
+
+    let printContent = `
+      <h2>Berechnung Lehrzeit – verlängerte Lehre</h2>
+      <p><strong>Lehrbeginn:</strong> ${formatDate(startDate)}</p>
+      <h3>Vorlehrzeiten</h3>
+    `;
+
+    periods.forEach(p=>{
+      let days = Math.floor((p.bis - p.von)/(1000*60*60*24)) + 1;
+      printContent += `<p>${p.betrieb} | ${formatDate(p.von)} - ${formatDate(p.bis)} | ${days} Tage</p>`;
+    });
+
+    printContent += `
+      <p><strong>Summe Anrechnung:</strong> ${totalDays} Tage</p>
+      <p><strong>Eintritt 3. Lehrjahr:</strong> ${formatDate(thirdYear)}</p>
+      <p><strong>Lehrzeitende:</strong> ${formatDate(endDate)}</p>
+    `;
+
+    document.getElementById("printArea").innerHTML = printContent;
+
+  } catch(e) {
+    alert(e);
+  }
+}
+
+function formatDate(d) {
+  return ("0"+d.getDate()).slice(-2)+"."+
+         ("0"+(d.getMonth()+1)).slice(-2)+"."+
+         d.getFullYear();
+}
+
+function printPDF() {
+  if (!document.getElementById("printArea").innerHTML) {
+    alert("Bitte zuerst berechnen.");
+    return;
+  }
+  window.print();
+}
+</script>
+
+</body>
+</html>
