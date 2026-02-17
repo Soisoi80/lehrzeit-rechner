@@ -200,31 +200,24 @@ function printPDF() {
     return;
   }
 
-  const printContent = document.getElementById("printArea").innerHTML;
+  const content = document.getElementById("printArea").innerText;
 
-  const newWindow = window.open('', '', 'width=800,height=600');
-  newWindow.document.write(`
-    <html>
-      <head>
-        <title>Berechnung Lehrzeit – verlängerte Lehre</title>
-        <style>
-          body { font-family: Arial; padding: 20px; }
-          h2 { margin-bottom: 20px; }
-          p { margin-bottom: 8px; }
-        </style>
-      </head>
-      <body>
-        ${printContent}
-      </body>
-    </html>
-  `);
+  const blob = new Blob(
+    [`
+Berechnung Lehrzeit – verlängerte Lehre
 
-  newWindow.document.close();
-  newWindow.focus();
-  newWindow.print();
+${content}
+    `],
+    { type: "application/pdf" }
+  );
+
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "Lehrzeit_Berechnung.pdf";
+  link.click();
 }
-</script>
 
 </body>
 
 </html>
+
