@@ -102,7 +102,6 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   addBtn.addEventListener("click", addRow);
-
   addRow();
 
   function formatDate(d) {
@@ -147,13 +146,19 @@ document.addEventListener("DOMContentLoaded", function() {
         totalDays += Math.floor((p.bis - p.von)/(1000*60*60*24)) + 1;
       });
 
-      let thirdYear = new Date(startDate);
-      thirdYear.setFullYear(thirdYear.getFullYear()+2);
-      thirdYear.setDate(thirdYear.getDate()-totalDays);
+      // ===== KORREKTE LEHRLOGIK =====
 
+      // 3. Lehrjahr (2 Jahre)
+      let thirdYear = new Date(startDate);
+      thirdYear.setFullYear(thirdYear.getFullYear() + 2);
+      thirdYear.setDate(thirdYear.getDate() - 1);   // letzter Tag vor Jahrestag
+      thirdYear.setDate(thirdYear.getDate() - totalDays);
+
+      // Lehrzeitende (4 Jahre)
       let endDate = new Date(startDate);
-      endDate.setFullYear(endDate.getFullYear()+4);
-      endDate.setDate(endDate.getDate()-totalDays);
+      endDate.setFullYear(endDate.getFullYear() + 4);
+      endDate.setDate(endDate.getDate() - 1);       // letzter Tag vor Jahrestag
+      endDate.setDate(endDate.getDate() - totalDays);
 
       document.getElementById("result").innerHTML =
         "Eintritt 3. Lehrjahr: " + formatDate(thirdYear) + "<br>" +
@@ -208,7 +213,6 @@ document.addEventListener("DOMContentLoaded", function() {
     newWindow.document.write(html);
     newWindow.document.close();
     newWindow.print();
-
   });
 
 });
