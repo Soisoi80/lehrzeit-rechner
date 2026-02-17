@@ -7,9 +7,9 @@
 
 <style>
 body {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: Arial, sans-serif;
   padding: 20px;
-  max-width: 600px;
+  max-width: 700px;
   margin: auto;
 }
 
@@ -30,10 +30,11 @@ input {
 }
 
 button {
-  padding: 12px;
+  padding: 10px;
   margin-top: 8px;
   width: 100%;
-  font-size: 16px;
+  font-size: 15px;
+  cursor: pointer;
 }
 
 table {
@@ -52,21 +53,6 @@ th, td {
   margin-top: 20px;
   font-weight: bold;
   font-size: 16px;
-}
-
-.print-section {
-  display: none;
-}
-
-@media print {
-  body * { visibility: hidden; }
-  .print-section, .print-section * { visibility: visible; }
-  .print-section {
-    position: absolute;
-    left: 0;
-    top: 0;
-    padding: 20px;
-  }
 }
 </style>
 </head>
@@ -94,14 +80,9 @@ th, td {
 
 <button onclick="addRow()">+ Zeitraum hinzufügen</button>
 <button onclick="calculate()">Berechnen</button>
-<button onclick="alert(document.getElementById('printArea').innerHTML)">
-Test PrintArea
-</button>
 <button onclick="printPDF()">PDF erzeugen</button>
 
 <div class="result" id="result"></div>
-
-<div class="print-section" id="printArea"></div>
 
 <script>
 const tbody = document.querySelector("#periodTable tbody");
@@ -167,24 +148,13 @@ function calculate() {
       "Eintritt 3. Lehrjahr: " + formatDate(thirdYear) + "<br>" +
       "Lehrzeitende: " + formatDate(endDate);
 
-    let printContent = `
-      <h2>Berechnung Lehrzeit – verlängerte Lehre</h2>
-      <p><strong>Lehrbeginn:</strong> ${formatDate(startDate)}</p>
-      <h3>Vorlehrzeiten</h3>
-    `;
-
-    periods.forEach(p=>{
-      let days = Math.floor((p.bis - p.von)/(1000*60*60*24)) + 1;
-      printContent += `<p>${p.betrieb} | ${formatDate(p.von)} - ${formatDate(p.bis)} | ${days} Tage</p>`;
-    });
-
-    printContent += `
-      <p><strong>Summe Anrechnung:</strong> ${totalDays} Tage</p>
-      <p><strong>Eintritt 3. Lehrjahr:</strong> ${formatDate(thirdYear)}</p>
-      <p><strong>Lehrzeitende:</strong> ${formatDate(endDate)}</p>
-    `;
-
-    document.getElementById("printArea").innerHTML = printContent;
+    window.printData = {
+      startDate,
+      periods,
+      totalDays,
+      thirdYear,
+      endDate
+    };
 
   } catch(e) {
     alert(e);
@@ -198,30 +168,48 @@ function formatDate(d) {
 }
 
 function printPDF() {
-  if (!document.getElementById("printArea").innerHTML) {
+  if (!window.printData) {
     alert("Bitte zuerst berechnen.");
     return;
   }
 
-  const content = document.getElementById("printArea").innerText;
+  const {startDate, periods, totalDays, thirdYear, endDate} = window.printData;
 
-  const blob = new Blob(
-    [`
-Berechnung Lehrzeit – verlängerte Lehre
+  let html = `
+    <html>
+    <head>
+      <title>Berechnung Lehrzeit – verlängerte Lehre</title>
+      <style>
+        body { font-family: Arial; padding: 30px; }
+        h2 { margin-bottom: 20px; }
+        p { margin-bottom: 8px; }
+      </style>
+    </head>
+    <body>
+      <h2>Berechnung Lehrzeit – verlängerte Lehre</h2>
+      <p><strong>Lehrbeginn:</strong> ${formatDate(startDate)}</p>
+      <h3>Vorlehrzeiten</h3>
+  `;
 
-${content}
-    `],
-    { type: "application/pdf" }
-  );
+  periods.forEach(p=>{
+    let days = Math.floor((p.bis - p.von)/(1000*60*60*24)) + 1;
+    html += `<p>${p.betrieb} | ${formatDate(p.von)} - ${formatDate(p.bis)} | ${days} Tage</p>`;
+  });
 
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "Lehrzeit_Berechnung.pdf";
-  link.click();
+  html += `
+      <p><strong>Summe Anrechnung:</strong> ${totalDays} Tage</p>
+      <p><strong>Eintritt 3. Lehrjahr:</strong> ${formatDate(thirdYear)}</p>
+      <p><strong>Lehrzeitende:</strong> ${formatDate(endDate)}</p>
+    </body>
+    </html>
+  `;
+
+  const newWindow = window.open("", "_blank");
+  newWindow.document.write(html);
+  newWindow.document.close();
+  newWindow.print();
 }
+</script>
 
 </body>
-
 </html>
-
-
