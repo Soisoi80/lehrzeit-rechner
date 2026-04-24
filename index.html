@@ -14,7 +14,6 @@ body {
 }
 
 h2 { text-align: center; }
-
 label { font-weight: bold; }
 
 input {
@@ -65,10 +64,10 @@ th, td {
 <table id="periodTable">
 <thead>
 <tr>
-<th>Betrieb</th>
-<th>Von</th>
-<th>Bis</th>
-<th></th>
+  <th>Betrieb</th>
+  <th>Von</th>
+  <th>Bis</th>
+  <th></th>
 </tr>
 </thead>
 <tbody></tbody>
@@ -81,12 +80,9 @@ th, td {
 <div class="result" id="result"></div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", () => {
 
   const tbody = document.querySelector("#periodTable tbody");
-  const addBtn = document.getElementById("addBtn");
-  const calcBtn = document.getElementById("calcBtn");
-  const pdfBtn = document.getElementById("pdfBtn");
 
   function addRow() {
     const row = tbody.insertRow();
@@ -96,130 +92,55 @@ document.addEventListener("DOMContentLoaded", function() {
       <td><input type="date"></td>
       <td><button type="button">X</button></td>
     `;
-    row.querySelector("button").addEventListener("click", function() {
-      row.remove();
-    });
+    row.querySelector("button").onclick = () => row.remove();
   }
 
-  addBtn.addEventListener("click", addRow);
   addRow();
+  document.getElementById("addBtn").onclick = addRow;
 
   function formatDate(d) {
-    return ("0"+d.getDate()).slice(-2)+"."+
-           ("0"+(d.getMonth()+1)).slice(-2)+"."+
+    return ("0"+d.getDate()).slice(-2) + "." +
+           ("0"+(d.getMonth()+1)).slice(-2) + "." +
            d.getFullYear();
   }
 
-  calcBtn.addEventListener("click", function() {
+  document.getElementById("calcBtn").onclick = () => {
     try {
-      const startValue = document.getElementById("startDate").value;
-      if (!startValue) throw "Lehrbeginn fehlt.";
 
-      const startDate = new Date(startValue);
+      const startVal = document.getElementById("startDate").value;
+      if (!startVal) throw "Lehrbeginn fehlt.";
+
+      const startDate = new Date(startVal + "T00:00:00");
       let periods = [];
 
       for (let row of tbody.rows) {
-        let betrieb = row.cells[0].children[0].value;
-        let vonVal = row.cells[1].children[0].value;
-        let bisVal = row.cells[2].children[0].value;
 
-   if (!vonVal || !bisVal) continue;
+        const betrieb = row.cells[0].children[0].value;
+        const vonVal  = row.cells[1].children[0].value;
+        const bisVal  = row.cells[2].children[0].value;
 
-let von = new Date(vonVal);
-let bis = new Date(bisVal);
+        if (!vonVal || !bisVal) continue;
 
-if (isNaN(von.getTime()) || isNaN(bis.getTime())) {
-  throw "Ungültiges Von- oder Bis-Datum in den Vorlehrzeiten.";
-}
-``
+        const von = new Date(vonVal + "T00:00:00");
+        const bis = new Date(bisVal + "T00:00:00");
 
-if (isNaN(von) || isNaN(bis)) {
-  throw "Ungültiges Datum in den Vorlehrzeiten.";
-}
+        if (isNaN(von) || isNaN(bis))
+          throw "Ungültiges Datum in den Vorlehrzeiten.";
 
         if (bis < von) throw "Bis-Datum liegt vor Von-Datum.";
         if (von >= startDate) throw "Vorlehrzeit liegt nach Lehrbeginn.";
 
-        periods.push({betrieb, von, bis});
+        periods.push({ betrieb, von, bis });
       }
 
-      periods.sort((a,b)=>a.von-b.von);
+      periods.sort((a,b) => a.von - b.von);
 
       for (let i=0; i<periods.length-1; i++) {
         if (periods[i].bis >= periods[i+1].von)
           throw "Vorlehrzeiten überschneiden sich.";
       }
 
+      // 👉 KORREKTE TAGESBERECHNUNG
       let totalDays = 0;
-      periods.forEach(p=>{
-       totalDays += Math.floor((p.bis - p.von)/(1000*60*60*24));
-      });
-
-   // ===== KORREKTE LEHRLOGIK =====
-
-// Eintritt 3. Lehrjahr (erster Tag!)
-let thirdYear = new Date(startDate);
-thirdYear.setFullYear(thirdYear.getFullYear() + 2);
-thirdYear.setDate(thirdYear.getDate() - totalDays);
-
-// Lehrzeitende (letzter Tag!)
-let endDate = new Date(startDate);
-endDate.setFullYear(endDate.getFullYear() + 4);
-endDate.setDate(endDate.getDate() - 1); // letzter Tag vor Jahrestag
-endDate.setDate(endDate.getDate() - totalDays);
-      window.printData = {startDate, periods, totalDays, thirdYear, endDate};
-
-    } catch(e) {
-      alert(e);
-    }
-  });
-
-  pdfBtn.addEventListener("click", function() {
-
-    if (!window.printData) {
-      alert("Bitte zuerst berechnen.");
-      return;
-    }
-
-    const {startDate, periods, totalDays, thirdYear, endDate} = window.printData;
-
-    let html = `
-      <html>
-      <head>
-        <title>Berechnung Lehrzeit – verlängerte Lehre</title>
-        <style>
-          body { font-family: Arial; padding: 30px; }
-          h2 { margin-bottom: 20px; }
-          p { margin-bottom: 8px; }
-        </style>
-      </head>
-      <body>
-        <h2>Berechnung Lehrzeit – verlängerte Lehre</h2>
-        <p><strong>Lehrbeginn:</strong> ${formatDate(startDate)}</p>
-        <h3>Vorlehrzeiten</h3>
-    `;
-
-    periods.forEach(p=>{
-      let days = Math.floor((p.bis - p.von)/(1000*60*60*24)) + 1;
-      html += `<p>${p.betrieb} | ${formatDate(p.von)} - ${formatDate(p.bis)} | ${days} Tage</p>`;
-    });
-
-    html += `
-        <p><strong>Summe Anrechnung:</strong> ${totalDays} Tage</p>
-        <p><strong>Eintritt 3. Lehrjahr:</strong> ${formatDate(thirdYear)}</p>
-        <p><strong>Lehrzeitende:</strong> ${formatDate(endDate)}</p>
-      </body>
-      </html>
-    `;
-
-    const newWindow = window.open("", "_blank");
-    newWindow.document.write(html);
-    newWindow.document.close();
-    newWindow.print();
-  });
-
-});
-</script>
-
-</body>
-</html>
+      periods.forEach(p => {
+        totalDays += Math.floor(
