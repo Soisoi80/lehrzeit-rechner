@@ -143,7 +143,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
       let totalDays = 0;
       periods.forEach(p=>{
-        totalDays += Math.floor((p.bis - p.von)/(1000*60*60*24)) + 1;
+       totalDays += Math.floor((p.bis - p.von)/(1000*60*60*24));
       });
 
    // ===== KORREKTE LEHRLOGIK =====
