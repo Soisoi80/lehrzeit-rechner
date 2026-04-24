@@ -113,9 +113,10 @@ function calculate() {
     });
 
     // Eintritt 3. Lehrjahr – erster Tag
-    const thirdYear = new Date(startDate);
-    thirdYear.setFullYear(thirdYear.getFullYear() + 2);
-    thirdYear.setDate(thirdYear.getDate() - totalDays);
+  const thirdYear = new Date(startDate);
+thirdYear.setFullYear(thirdYear.getFullYear() + 2);
+thirdYear.setDate(thirdYear.getDate() - totalDays + 1);
+
 
     // Lehrzeitende – letzter Tag
     const endDate = new Date(startDate);
