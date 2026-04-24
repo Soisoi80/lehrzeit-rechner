@@ -77,3 +77,70 @@ button {
 <tr>
   <td><input type="text"></td>
   <td><input type="date"></td>
+  <td><input type="date"></td>
+</tr>
+</tbody>
+</table>
+
+<button onclick="calculate()">Berechnen</button>
+
+<div id="result" class="result"></div>
+
+<script>
+function formatDate(d) {
+  return ("0" + d.getDate()).slice(-2) + "." +
+         ("0" + (d.getMonth() + 1)).slice(-2) + "." +
+         d.getFullYear();
+}
+
+function calculate() {
+  try {
+
+    const startVal = document.getElementById("startDate").value;
+    if (!startVal) throw "Bitte Lehrbeginn eingeben.";
+
+    const startDate = new Date(startVal + "T00:00:00");
+
+    let totalDays = 0;
+    const rows = document.querySelectorAll("#periods tr");
+
+    rows.forEach(row => {
+      const vonVal = row.cells[1].children[0].value;
+      const bisVal = row.cells[2].children[0].value;
+
+      if (!vonVal || !bisVal) return;
+
+      const von = new Date(vonVal + "T00:00:00");
+      const bis = new Date(bisVal + "T00:00:00");
+
+      if (bis < von) throw "Vorlehrzeit: Bis-Datum liegt vor Von-Datum.";
+      if (von >= startDate) throw "Vorlehrzeit liegt nach Lehrbeginn.";
+
+      // KORREKTE Tagesdifferenz (nicht inklusiv!)
+      const days = Math.floor((bis - von) / (1000 * 60 * 60 * 24));
+      totalDays += days;
+    });
+
+    // Eintritt 3. Lehrjahr – erster Tag
+    const thirdYear = new Date(startDate);
+    thirdYear.setFullYear(thirdYear.getFullYear() + 2);
+    thirdYear.setDate(thirdYear.getDate() - totalDays);
+
+    // Lehrzeitende – letzter Tag
+    const endDate = new Date(startDate);
+    endDate.setFullYear(endDate.getFullYear() + 4);
+    endDate.setDate(endDate.getDate() - 1);
+    endDate.setDate(endDate.getDate() - totalDays);
+
+    document.getElementById("result").innerHTML =
+      "Eintritt 3. Lehrjahr: " + formatDate(thirdYear) + "<br>" +
+      "Lehrzeitende: " + formatDate(endDate);
+
+  } catch (e) {
+    alert(e);
+  }
+}
+</script>
+
+</body>
+</html>
