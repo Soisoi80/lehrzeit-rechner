@@ -123,10 +123,15 @@ document.addEventListener("DOMContentLoaded", function() {
         let vonVal = row.cells[1].children[0].value;
         let bisVal = row.cells[2].children[0].value;
 
-     if (!vonVal || !bisVal) continue;
+   if (!vonVal || !bisVal) continue;
 
 let von = new Date(vonVal);
 let bis = new Date(bisVal);
+
+if (isNaN(von.getTime()) || isNaN(bis.getTime())) {
+  throw "Ungültiges Von- oder Bis-Datum in den Vorlehrzeiten.";
+}
+``
 
 if (isNaN(von) || isNaN(bis)) {
   throw "Ungültiges Datum in den Vorlehrzeiten.";
