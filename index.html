@@ -2,145 +2,117 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Lehrzeit Rechner</title>
+<title>Lehrzeit-Rechner</title>
 
 <style>
 body {
   font-family: Arial, sans-serif;
-  max-width: 700px;
+  max-width: 600px;
   margin: auto;
   padding: 20px;
 }
-h2 { text-align: center; }
-label { font-weight: bold; }
+
+label {
+  font-weight: bold;
+  display: block;
+  margin-top: 10px;
+}
 
 input {
   width: 100%;
   padding: 6px;
-  margin-bottom: 8px;
-  box-sizing: border-box;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-th, td {
-  border-bottom: 1px solid #ccc;
-  padding: 6px;
+  margin-top: 4px;
 }
 
 button {
   width: 100%;
   padding: 10px;
-  margin-top: 12px;
+  margin-top: 20px;
   cursor: pointer;
 }
 
 .result {
   margin-top: 20px;
-  font-size: 16px;
   font-weight: bold;
+  font-size: 16px;
 }
 </style>
 </head>
 
 <body>
 
-<h2>Lehrzeit-Rechner (verlängerte Lehre)</h2>
+<h2>Lehrzeit‑Rechner</h2>
 
 <label>Lehrbeginn</label>
 <input type="date" id="startDate">
 
-<h3>Vorlehrzeiten</h3>
+<h3>Vorlehrzeit 1</h3>
+<label>Von</label>
+<input type="date" id="v1">
+<label>Bis</label>
+<input type="date" id="b1">
 
-<table>
-<thead>
-<tr>
-  <th>Betrieb</th>
-  <th>Von</th>
-  <th>Bis</th>
-</tr>
-</thead>
-<tbody id="periods">
-<tr>
-  <td><input type="text"></td>
-  <td><input type="date"></td>
-  <td><input type="date"></td>
-</tr>
-<tr>
-  <td><input type="text"></td>
-  <td><input type="date"></td>
-  <td><input type="date"></td>
-</tr>
-<tr>
-  <td><input type="text"></td>
-  <td><input type="date"></td>
-  <td><input type="date"></td>
-</tr>
-</tbody>
-</table>
+<h3>Vorlehrzeit 2</h3>
+<label>Von</label>
+<input type="date" id="v2">
+<label>Bis</label>
+<input type="date" id="b2">
+
+<h3>Vorlehrzeit 3</h3>
+<label>Von</label>
+<input type="date" id="v3">
+<label>Bis</label>
+<input type="date" id="b3">
 
 <button onclick="calculate()">Berechnen</button>
 
-<div id="result" class="result"></div>
+<div class="result" id="result"></div>
 
 <script>
 function formatDate(d) {
-  return ("0" + d.getDate()).slice(-2) + "." +
-         ("0" + (d.getMonth() + 1)).slice(-2) + "." +
+  return ("0"+d.getDate()).slice(-2) + "." +
+         ("0"+(d.getMonth()+1)).slice(-2) + "." +
          d.getFullYear();
 }
 
 function calculate() {
   try {
-
     const startVal = document.getElementById("startDate").value;
     if (!startVal) throw "Bitte Lehrbeginn eingeben.";
 
     const startDate = new Date(startVal + "T00:00:00");
 
+    const pairs = [
+      ["v1","b1"],
+      ["v2","b2"],
+      ["v3","b3"]
+    ];
+
     let totalDays = 0;
-    const rows = document.querySelectorAll("#periods tr");
 
-    rows.forEach(row => {
-      const vonVal = row.cells[1].children[0].value;
-      const bisVal = row.cells[2].children[0].value;
+    pairs.forEach(p => {
+      const v = document.getElementById(p[0]).value;
+      const b = document.getElementById(p[1]).value;
 
-      if (!vonVal || !bisVal) return;
+      if (!v || !b) return;
 
-      const von = new Date(vonVal + "T00:00:00");
-      const bis = new Date(bisVal + "T00:00:00");
+      const von = new Date(v + "T00:00:00");
+      const bis = new Date(b + "T00:00:00");
 
-      if (bis < von) throw "Vorlehrzeit: Bis-Datum liegt vor Von-Datum.";
+      if (bis < von) throw "Bis‑Datum liegt vor Von‑Datum.";
       if (von >= startDate) throw "Vorlehrzeit liegt nach Lehrbeginn.";
 
-      // KORREKTE Tagesdifferenz (nicht inklusiv!)
-      const days = Math.floor((bis - von) / (1000 * 60 * 60 * 24));
-      totalDays += days;
+      totalDays += Math.floor((bis - von) / (1000*60*60*24));
     });
 
-    // Eintritt 3. Lehrjahr – erster Tag
+    // Eintritt 3. Lehrjahr (erster Tag)
     const thirdYear = new Date(startDate);
     thirdYear.setFullYear(thirdYear.getFullYear() + 2);
     thirdYear.setDate(thirdYear.getDate() - totalDays);
 
-    // Lehrzeitende – letzter Tag
+    // Lehrzeitende (letzter Tag)
     const endDate = new Date(startDate);
     endDate.setFullYear(endDate.getFullYear() + 4);
     endDate.setDate(endDate.getDate() - 1);
     endDate.setDate(endDate.getDate() - totalDays);
 
-    document.getElementById("result").innerHTML =
-      "Eintritt 3. Lehrjahr: " + formatDate(thirdYear) + "<br>" +
-      "Lehrzeitende: " + formatDate(endDate);
-
-  } catch (e) {
-    alert(e);
-  }
-}
-</script>
-
-</body>
-</html>
