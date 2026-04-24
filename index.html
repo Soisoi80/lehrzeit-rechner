@@ -123,10 +123,14 @@ document.addEventListener("DOMContentLoaded", function() {
         let vonVal = row.cells[1].children[0].value;
         let bisVal = row.cells[2].children[0].value;
 
-        if (!vonVal) continue;
+     if (!vonVal || !bisVal) continue;
 
-        let von = new Date(vonVal);
-        let bis = new Date(bisVal);
+let von = new Date(vonVal);
+let bis = new Date(bisVal);
+
+if (isNaN(von) || isNaN(bis)) {
+  throw "Ungültiges Datum in den Vorlehrzeiten.";
+}
 
         if (bis < von) throw "Bis-Datum liegt vor Von-Datum.";
         if (von >= startDate) throw "Vorlehrzeit liegt nach Lehrbeginn.";
