@@ -148,17 +148,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
       // ===== KORREKTE LEHRLOGIK =====
 
-      // 3. Lehrjahr (2 Jahre)
-      let thirdYear = new Date(startDate);
-      thirdYear.setFullYear(thirdYear.getFullYear() + 2);
-      thirdYear.setDate(thirdYear.getDate() - 1);   // letzter Tag vor Jahrestag
-      thirdYear.setDate(thirdYear.getDate() - totalDays);
+    // Eintritt 3. Lehrjahr (nach 2 Jahren)
+let thirdYear = new Date(startDate);
+thirdYear.setFullYear(thirdYear.getFullYear() + 2);
+thirdYear.setDate(thirdYear.getDate() - totalDays);
 
-      // Lehrzeitende (4 Jahre)
-      let endDate = new Date(startDate);
-      endDate.setFullYear(endDate.getFullYear() + 4);
-      endDate.setDate(endDate.getDate() - 1);       // letzter Tag vor Jahrestag
-      endDate.setDate(endDate.getDate() - totalDays);
+// Lehrzeitende (4 Jahre, letzter Tag)
+let endDate = new Date(startDate);
+endDate.setFullYear(endDate.getFullYear() + 4);
+endDate.setDate(endDate.getDate() - 1);       // letzter Tag
+endDate.setDate(endDate.getDate() - totalDays);
+
 
       document.getElementById("result").innerHTML =
         "Eintritt 3. Lehrjahr: " + formatDate(thirdYear) + "<br>" +
